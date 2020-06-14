@@ -53,7 +53,7 @@ class NameSchemaService
     /** @var \eZ\Publish\Core\Repository\Mapper\ContentTypeDomainMapper */
     protected $contentTypeDomainMapper;
 
-    /** @var \eZ\Publish\Core\Repository\Helper\FieldTypeRegistry */
+    /** @var \eZ\Publish\Core\FieldType\FieldTypeRegistry */
     protected $fieldTypeRegistry;
 
     /** @var array */

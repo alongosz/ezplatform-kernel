@@ -259,6 +259,7 @@ class Repository implements RepositoryInterface
         LimitationService $limitationService,
         LanguageResolver $languageResolver,
         PermissionService $permissionService,
+        NameSchemaService $nameSchemaService,
         array $serviceSettings = [],
         ?LoggerInterface $logger = null
     ) {
@@ -276,6 +277,7 @@ class Repository implements RepositoryInterface
         $this->limitationService = $limitationService;
         $this->languageResolver = $languageResolver;
         $this->permissionService = $permissionService;
+        $this->nameSchemaService = $nameSchemaService;
 
         $this->serviceSettings = $serviceSettings + [
                 'content' => [],
@@ -293,7 +295,6 @@ class Repository implements RepositoryInterface
                 'search' => [],
                 'urlAlias' => [],
                 'urlWildcard' => [],
-                'nameSchema' => [],
                 'languages' => [],
                 'proxy_factory' => [],
             ];
@@ -331,7 +332,7 @@ class Repository implements RepositoryInterface
             $this->persistenceHandler,
             $this->contentDomainMapper,
             $this->getRelationProcessor(),
-            $this->getNameSchemaService(),
+            $this->nameSchemaService,
             $this->fieldTypeRegistry,
             $this->getPermissionResolver(),
             $this->serviceSettings['content'],
@@ -408,7 +409,7 @@ class Repository implements RepositoryInterface
             $this,
             $this->persistenceHandler,
             $this->contentDomainMapper,
-            $this->getNameSchemaService(),
+            $this->nameSchemaService,
             $this->getPermissionCriterionResolver(),
             $this->getPermissionResolver(),
             $this->serviceSettings['location'],
@@ -435,7 +436,7 @@ class Repository implements RepositoryInterface
         $this->trashService = new TrashService(
             $this,
             $this->persistenceHandler,
-            $this->getNameSchemaService(),
+            $this->nameSchemaService,
             $this->getPermissionCriterionResolver(),
             $this->getPermissionResolver(),
             $this->getProxyDomainMapper(),
@@ -508,7 +509,7 @@ class Repository implements RepositoryInterface
         $this->urlAliasService = new URLAliasService(
             $this,
             $this->persistenceHandler->urlAliasHandler(),
-            $this->getNameSchemaService(),
+            $this->nameSchemaService,
             $this->getPermissionResolver(),
             $this->languageResolver
         );
@@ -684,29 +685,13 @@ class Repository implements RepositoryInterface
     }
 
     /**
-     * Get NameSchemaResolverService.
-     *
-     *
-     * @todo Move out from this & other repo instances when services becomes proper services in DIC terms using factory.
-     *
      * @internal
      * @private
      *
-     * @return \eZ\Publish\Core\Repository\Helper\NameSchemaService
+     * @deprecated since eZ Platform 3.1, will be removed in 4.0. Inject directly NameSchemaService instead.
      */
     public function getNameSchemaService(): NameSchemaService
     {
-        if ($this->nameSchemaService !== null) {
-            return $this->nameSchemaService;
-        }
-
-        $this->nameSchemaService = new Helper\NameSchemaService(
-            $this->persistenceHandler->contentTypeHandler(),
-            $this->contentTypeDomainMapper,
-            $this->fieldTypeRegistry,
-            $this->serviceSettings['nameSchema']
-        );
-
         return $this->nameSchemaService;
     }
 

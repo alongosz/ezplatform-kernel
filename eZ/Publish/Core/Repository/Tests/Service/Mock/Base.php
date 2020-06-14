@@ -9,6 +9,7 @@ namespace eZ\Publish\Core\Repository\Tests\Service\Mock;
 use eZ\Publish\API\Repository\LanguageResolver;
 use eZ\Publish\API\Repository\PermissionResolver;
 use eZ\Publish\API\Repository\PermissionService;
+use eZ\Publish\Core\Repository\Helper\NameSchemaService;
 use eZ\Publish\Core\Repository\Mapper\ContentDomainMapper;
 use eZ\Publish\Core\Repository\Mapper\RoleDomainMapper;
 use eZ\Publish\Core\Repository\Permission\LimitationService;
@@ -102,6 +103,7 @@ abstract class Base extends TestCase
                 $this->getLimitationServiceMock(),
                 $this->getLanguageResolverMock(),
                 $this->getPermissionServiceMock(),
+                $this->getNameSchemaServiceMock(),
                 $serviceSettings,
             );
 
@@ -374,5 +376,13 @@ abstract class Base extends TestCase
         }
 
         return $this->roleDomainMapperMock;
+    }
+
+    /**
+     * @return \eZ\Publish\Core\Repository\Helper\NameSchemaService|\PHPUnit\Framework\MockObject\MockObject
+     */
+    private function getNameSchemaServiceMock(): NameSchemaService
+    {
+        return $this->createMock(NameSchemaService::class);
     }
 }

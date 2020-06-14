@@ -9,6 +9,7 @@ namespace eZ\Publish\Core\Base\Container\ApiLoader;
 use eZ\Publish\API\Repository\LanguageResolver;
 use eZ\Publish\API\Repository\PermissionService;
 use eZ\Publish\Core\FieldType\FieldTypeRegistry;
+use eZ\Publish\Core\Repository\Helper\NameSchemaService;
 use eZ\Publish\Core\Repository\Permission\LimitationService;
 use eZ\Publish\Core\Repository\ProxyFactory\ProxyDomainMapperFactoryInterface;
 use eZ\Publish\Core\Repository\User\PasswordHashServiceInterface;
@@ -72,6 +73,7 @@ class RepositoryFactory implements ContainerAwareInterface
         Mapper\RoleDomainMapper $roleDomainMapper,
         LimitationService $limitationService,
         PermissionService $permissionService,
+        NameSchemaService $nameSchemaService,
         array $languages
     ): Repository {
         return new $this->repositoryClass(
@@ -89,6 +91,7 @@ class RepositoryFactory implements ContainerAwareInterface
             $limitationService,
             $this->languageResolver,
             $permissionService,
+            $nameSchemaService,
             [
                 'role' => [
                     'policyMap' => $this->policyMap,

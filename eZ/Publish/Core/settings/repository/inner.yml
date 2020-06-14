@@ -3,6 +3,9 @@ parameters:
 
     # intentionally defined class parameter to be used by the Repository Factory
     ezpublish.api.inner_repository.class: eZ\Publish\Core\Repository\Repository
+
+    # for default settings see \eZ\Publish\Core\Repository\Helper\NameSchemaService::__construct
+    ezplatform.internal.name_schema_settings: []
 services:
     ezpublish.api.repository.factory:
         class: eZ\Publish\Core\Base\Container\ApiLoader\RepositoryFactory
@@ -30,6 +33,7 @@ services:
             - '@eZ\Publish\Core\Repository\Mapper\RoleDomainMapper'
             - '@eZ\Publish\Core\Repository\Permission\LimitationService'
             - '@eZ\Publish\API\Repository\PermissionService'
+            - '@eZ\Publish\Core\Repository\Helper\NameSchemaService'
             - '%languages%'
 
     ezpublish.api.service.inner_content:
@@ -202,3 +206,11 @@ services:
         arguments:
             $innerPermissionResolver: '@eZ\Publish\Core\Repository\Permission\PermissionResolver'
             $permissionCriterionResolver: '@eZ\Publish\Core\Repository\Permission\PermissionCriterionResolver'
+
+    # Misc
+    eZ\Publish\Core\Repository\Helper\NameSchemaService:
+        arguments:
+            $contentTypeHandler: '@ezpublish.spi.persistence.content_type_handler'
+            $contentTypeDomainMapper: '@eZ\Publish\Core\Repository\Mapper\ContentTypeDomainMapper'
+            $fieldTypeRegistry: '@eZ\Publish\Core\FieldType\FieldTypeRegistry'
+            $settings: '%ezplatform.internal.name_schema_settings%'
