@@ -43,17 +43,23 @@ class DateMetadata extends Criterion
     public const CREATED = 'created';
 
     /**
+     * DateMetadata target: move to trash date
+     * Only for LSE.
+     */
+    public const TRASHED = 'trashed';
+
+    /**
      * Creates a new DateMetadata criterion on $metadata.
      *
      * @throws \InvalidArgumentException If target is unknown
      *
-     * @param string $target One of DateMetadata::CREATED or DateMetadata::MODIFIED
+     * @param string $target One of DateMetadata::CREATED, DateMetadata::MODIFIED or DateMetadata::TRASHED (works only with LSE)
      * @param string $operator One of the Operator constants
      * @param mixed $value The match value, either as an array of as a single value, depending on the operator
      */
     public function __construct(string $target, string $operator, $value)
     {
-        if ($target != self::MODIFIED && $target != self::CREATED) {
+        if (!in_array($target, [self::MODIFIED, self::CREATED, self::TRASHED])) {
             throw new InvalidArgumentException("Unknown DateMetadata $target");
         }
         parent::__construct($target, $operator, $value);

@@ -67,7 +67,28 @@ class CriteriaConverterPassTest extends AbstractCompilerPassTestCase
         );
     }
 
-    public function testAddLocationAndContentHandlers()
+    public function testAddTrashHandlers(): void
+    {
+        $this->setDefinition(
+            'ezplatform.search.legacy.gateway.criteria_converter.trash',
+            new Definition()
+        );
+
+        $serviceId = 'service_id';
+        $def = new Definition();
+        $def->addTag('ezplatform.search.legacy.gateway.criterion_handler.trash');
+        $this->setDefinition($serviceId, $def);
+
+        $this->compile();
+
+        $this->assertContainerBuilderHasServiceDefinitionWithMethodCall(
+            'ezplatform.search.legacy.gateway.criteria_converter.trash',
+            'addHandler',
+            [new Reference($serviceId)]
+        );
+    }
+
+    public function testAddMultipleHandlers(): void
     {
         $this->setDefinition(
             'ezpublish.search.legacy.gateway.criteria_converter.content',
@@ -77,11 +98,16 @@ class CriteriaConverterPassTest extends AbstractCompilerPassTestCase
             'ezpublish.search.legacy.gateway.criteria_converter.location',
             new Definition()
         );
+        $this->setDefinition(
+            'ezplatform.search.legacy.gateway.criteria_converter.trash',
+            new Definition()
+        );
 
         $commonServiceId = 'common_service_id';
         $def = new Definition();
         $def->addTag('ezpublish.search.legacy.gateway.criterion_handler.content');
         $def->addTag('ezpublish.search.legacy.gateway.criterion_handler.location');
+        $def->addTag('ezplatform.search.legacy.gateway.criterion_handler.trash');
         $this->setDefinition($commonServiceId, $def);
 
         $this->compile();
@@ -94,6 +120,12 @@ class CriteriaConverterPassTest extends AbstractCompilerPassTestCase
 
         $this->assertContainerBuilderHasServiceDefinitionWithMethodCall(
             'ezpublish.search.legacy.gateway.criteria_converter.location',
+            'addHandler',
+            [new Reference($commonServiceId)]
+        );
+
+        $this->assertContainerBuilderHasServiceDefinitionWithMethodCall(
+            'ezplatform.search.legacy.gateway.criteria_converter.trash',
             'addHandler',
             [new Reference($commonServiceId)]
         );

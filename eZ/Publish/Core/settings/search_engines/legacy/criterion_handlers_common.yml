@@ -36,6 +36,10 @@ parameters:
             - "tab_search_normalize"
 
 services:
+    ezplatform.search.legacy.gateway.criteria_converter.trash:
+        class: eZ\Publish\Core\Search\Legacy\Content\Common\Gateway\CriteriaConverter
+        lazy: true
+
     eZ\Publish\Core\Search\Legacy\Content\Common\Gateway\CriterionHandler:
         abstract: true
         arguments:
@@ -86,6 +90,7 @@ services:
         tags:
             - {name: ezpublish.search.legacy.gateway.criterion_handler.content}
             - {name: ezpublish.search.legacy.gateway.criterion_handler.location}
+            - {name: ezplatform.search.legacy.gateway.criterion_handler.trash}
 
     ezpublish.search.legacy.gateway.criterion_handler.common.content_type_identifier:
         class: eZ\Publish\Core\Search\Legacy\Content\Common\Gateway\CriterionHandler\ContentTypeIdentifier
@@ -103,6 +108,7 @@ services:
         tags:
             - {name: ezpublish.search.legacy.gateway.criterion_handler.content}
             - {name: ezpublish.search.legacy.gateway.criterion_handler.location}
+            - {name: ezplatform.search.legacy.gateway.criterion_handler.trash}
 
     ezpublish.search.legacy.gateway.criterion_handler.common.field:
         class: eZ\Publish\Core\Search\Legacy\Content\Common\Gateway\CriterionHandler\Field
@@ -151,6 +157,7 @@ services:
         tags:
             - {name: ezpublish.search.legacy.gateway.criterion_handler.content}
             - {name: ezpublish.search.legacy.gateway.criterion_handler.location}
+            - {name: ezplatform.search.legacy.gateway.criterion_handler.trash}
 
     ezpublish.search.legacy.gateway.criterion_handler.common.logical_not:
         parent: eZ\Publish\Core\Search\Legacy\Content\Common\Gateway\CriterionHandler
@@ -221,6 +228,7 @@ services:
         tags:
             - {name: ezpublish.search.legacy.gateway.criterion_handler.content}
             - {name: ezpublish.search.legacy.gateway.criterion_handler.location}
+            - {name: ezplatform.search.legacy.gateway.criterion_handler.trash}
 
     ezpublish.search.legacy.gateway.criterion_handler.common.section_identifier:
         parent: eZ\Publish\Core\Search\Legacy\Content\Common\Gateway\CriterionHandler
@@ -267,6 +275,7 @@ services:
         tags:
             - {name: ezpublish.search.legacy.gateway.criterion_handler.content}
             - {name: ezpublish.search.legacy.gateway.criterion_handler.location}
+            - {name: ezplatform.search.legacy.gateway.criterion_handler.trash}
 
     ezpublish.search.legacy.gateway.criterion_handler.common.is_user_based:
         parent: eZ\Publish\Core\Search\Legacy\Content\Common\Gateway\CriterionHandler

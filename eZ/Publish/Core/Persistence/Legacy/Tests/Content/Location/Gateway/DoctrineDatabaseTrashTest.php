@@ -9,6 +9,7 @@ namespace eZ\Publish\Core\Persistence\Legacy\Tests\Content\Location\Gateway;
 use Doctrine\DBAL\ParameterType;
 use eZ\Publish\Core\Persistence\Legacy\Tests\Content\LanguageAwareTestCase;
 use eZ\Publish\Core\Persistence\Legacy\Content\Location\Gateway\DoctrineDatabase;
+use eZ\Publish\Core\Search\Legacy\Content;
 use eZ\Publish\API\Repository\Values\Content\Query\SortClause;
 use eZ\Publish\API\Repository\Values\Content\Query;
 
@@ -21,7 +22,9 @@ class DoctrineDatabaseTrashTest extends LanguageAwareTestCase
     {
         return new DoctrineDatabase(
             $this->getDatabaseConnection(),
-            $this->getLanguageMaskGenerator()
+            $this->getLanguageMaskGenerator(),
+            $this->getTrashCriteriaConverterDependency(),
+            $this->getTrashSortClauseConverterDependency()
         );
     }
 

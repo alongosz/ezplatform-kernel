@@ -669,7 +669,7 @@ class TrashServiceTest extends BaseTrashServiceTest
         $query = new Query();
         $query->filter = new Criterion\LogicalAnd(
             [
-                new Criterion\Field('title', Criterion\Operator::LIKE, '*'),
+                new Criterion\ContentTypeId(1),
             ]
         );
 
@@ -713,10 +713,6 @@ class TrashServiceTest extends BaseTrashServiceTest
         );
 
         $query = new Query();
-        $query->filter = new Criterion\ContentId([
-            $folder1->contentInfo->id,
-            $folder2->contentInfo->id,
-        ]);
 
         // Load all trashed locations, sorted by trashed date ASC
         $query->sortClauses = [new SortClause\Trash\DateTrashed(Query::SORT_ASC)];
@@ -880,11 +876,7 @@ class TrashServiceTest extends BaseTrashServiceTest
 
         // Create a search query for all trashed items
         $query = new Query();
-        $query->filter = new Criterion\LogicalAnd(
-            [
-                new Criterion\Field('title', Criterion\Operator::LIKE, '*'),
-            ]
-        );
+
         // Load all trashed locations, search result should be empty
         $searchResult = $trashService->findTrashItems($query);
         /* END: Use Case */
@@ -929,11 +921,7 @@ class TrashServiceTest extends BaseTrashServiceTest
 
         // Create a search query for all trashed items
         $query = new Query();
-        $query->filter = new Criterion\LogicalAnd(
-            [
-                new Criterion\Field('title', Criterion\Operator::LIKE, '*'),
-            ]
-        );
+
         // Load all trashed locations, search result should be empty
         $searchResult = $trashService->findTrashItems($query);
         /* END: Use Case */
@@ -975,11 +963,6 @@ class TrashServiceTest extends BaseTrashServiceTest
 
         // Create a search query for all trashed items
         $query = new Query();
-        $query->filter = new Criterion\LogicalAnd(
-            [
-                new Criterion\Field('title', Criterion\Operator::LIKE, '*'),
-            ]
-        );
 
         // Load all trashed locations, should only contain the Demo Design location
         $searchResult = $trashService->findTrashItems($query);

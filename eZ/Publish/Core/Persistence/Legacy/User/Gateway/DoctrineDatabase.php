@@ -25,6 +25,8 @@ use function time;
  */
 final class DoctrineDatabase extends Gateway
 {
+    public const USER_TABLE = 'ezuser';
+
     /** @var \Doctrine\DBAL\Connection */
     private $connection;
 
