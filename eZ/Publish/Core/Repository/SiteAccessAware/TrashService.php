@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace eZ\Publish\Core\Repository\SiteAccessAware;
 
 use eZ\Publish\API\Repository\TrashService as TrashServiceInterface;
+use eZ\Publish\API\Repository\Values\Content\Trash\TrashQuery;
 use eZ\Publish\API\Repository\Values\Content\TrashItem;
 use eZ\Publish\API\Repository\Values\Content\Location;
 use eZ\Publish\API\Repository\Values\Content\Query;
@@ -65,5 +66,10 @@ class TrashService implements TrashServiceInterface
     public function findTrashItems(Query $query): SearchResult
     {
         return $this->service->findTrashItems($query);
+    }
+
+    public function filterTrashItems(TrashQuery $query): SearchResult
+    {
+        return $this->service->filterTrashItems($query);
     }
 }

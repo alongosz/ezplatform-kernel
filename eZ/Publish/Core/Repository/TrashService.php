@@ -13,6 +13,7 @@ use eZ\Publish\API\Repository\TrashService as TrashServiceInterface;
 use eZ\Publish\API\Repository\Repository as RepositoryInterface;
 use eZ\Publish\API\Repository\Values\Content\Content;
 use eZ\Publish\API\Repository\Exceptions\UnauthorizedException as APIUnauthorizedException;
+use eZ\Publish\API\Repository\Values\Content\Trash\TrashQuery;
 use eZ\Publish\Core\Repository\ProxyFactory\ProxyDomainMapperInterface;
 use eZ\Publish\SPI\Persistence\Handler;
 use eZ\Publish\API\Repository\Values\Content\Location;
@@ -34,6 +35,7 @@ use eZ\Publish\API\Repository\Values\Content\Trash\TrashItemDeleteResultList;
 use eZ\Publish\API\Repository\Values\Content\Trash\TrashItemDeleteResult;
 use DateTime;
 use Exception;
+use eZ\Publish\SPI\Repository\Values\Trash\SortClause as TrashSortClause;
 
 /**
  * Trash service, used for managing trashed content.
@@ -340,6 +342,29 @@ class TrashService implements TrashServiceInterface
         $searchResult = new SearchResult(['items' => $trashItems, 'totalCount' => $spiTrashResult->totalCount]);
 
         return $searchResult;
+    }
+
+    public function filterTrashItems(TrashQuery $query): SearchResult
+    {
+        foreach ($query->getTrashSortClauses() as $sortClause) {
+            if (!$sortClause instanceof TrashSortClause) {
+                throw new InvalidArgumentValue(
+                    'query->trashSortClauses',
+                    \sprintf('only instances of %s class are allowed', TrashSortClause::class)
+                );
+            }
+        }
+
+        $spiTrashResult = $this->persistenceHandler->trashHandler()->findTrashItems(
+            $query->getTrashFilter(),
+            $query->offset !== null && $query->offset > 0 ? (int)$query->offset : 0,
+            $query->limit !== null && $query->limit >= 0 ? (int)$query->limit : null,
+            $query->trashSortClauses
+        );
+
+        $trashItems = $this->buildDomainTrashItems($spiTrashResult->items);
+
+        return new SearchResult(['items' => $trashItems, 'totalCount' => $spiTrashResult->totalCount]);
     }
 
     protected function buildDomainTrashItems(array $spiTrashItems): array

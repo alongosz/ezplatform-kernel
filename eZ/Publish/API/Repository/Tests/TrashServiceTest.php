@@ -17,6 +17,7 @@ use eZ\Publish\API\Repository\Values\Content\Query\Criterion;
 use eZ\Publish\API\Repository\Values\Content\Query\SortClause;
 use eZ\Publish\API\Repository\Exceptions\NotFoundException;
 use eZ\Publish\API\Repository\Values\Content\Trash\SearchResult;
+use eZ\Publish\API\Repository\Values\Content\Trash\TrashQuery;
 use eZ\Publish\API\Repository\Values\Content\TrashItem as APITrashItem;
 use eZ\Publish\API\Repository\Values\User\Limitation\SubtreeLimitation;
 use eZ\Publish\Core\Repository\Values\Content\TrashItem;
@@ -655,36 +656,35 @@ class TrashServiceTest extends BaseTrashServiceTest
      * Test for the findTrashItems() method.
      *
      * @see \eZ\Publish\API\Repository\TrashService::findTrashItems()
-     * @depends eZ\Publish\API\Repository\Tests\TrashServiceTest::testTrash
+     * @ depends eZ\Publish\API\Repository\Tests\TrashServiceTest::testTrash
      */
-    public function testFindTrashItems()
+    public function testFilterTrashItems()
     {
         $repository = $this->getRepository();
         $trashService = $repository->getTrashService();
+        $locationService = $repository->getLocationService();
 
-        /* BEGIN: Use Case */
-        $this->createTrashItem();
+        $folder = $this->createFolder(['eng-GB' => 'My Folder'], 2);
+
+        // Trash the "Community" page location
+        $trashService->trash($folder->contentInfo->getMainLocation());
 
         // Create a search query for all trashed items
-        $query = new Query();
-        $query->filter = new Criterion\LogicalAnd(
-            [
-                new Criterion\ContentTypeId(1),
-            ]
+        $query = new TrashQuery(
+            new Criterion\LogicalAnd(
+                [
+                    new Criterion\ContentTypeId(1),
+                ]
+            )
         );
 
         // Load all trashed locations
-        $searchResult = $trashService->findTrashItems($query);
+        $searchResult = $trashService->filterTrashItems($query);
         /* END: Use Case */
 
-        $this->assertInstanceOf(
-            SearchResult::class,
-            $searchResult
-        );
-
         // 4 trashed locations from the sub tree
-        $this->assertEquals(4, $searchResult->count);
-        $this->assertEquals(4, $searchResult->totalCount);
+        $this->assertEquals(1, $searchResult->totalCount);
+        $this->assertEquals($folder->contentInfo->id, $searchResult->items[0]->contentInfo->id);
     }
 
     /**
@@ -764,7 +764,7 @@ class TrashServiceTest extends BaseTrashServiceTest
      * Test for the findTrashItems() method.
      *
      * @see \eZ\Publish\API\Repository\TrashService::findTrashItems()
-     * @depends \eZ\Publish\API\Repository\Tests\TrashServiceTest::testFindTrashItems
+     * @depends \eZ\Publish\API\Repository\Tests\TrashServiceTest::testFilterTrashItems
      */
     public function testFindTrashItemsLimitedAccess()
     {

@@ -12,6 +12,7 @@ use eZ\Publish\API\Repository\Values\Content\Location;
 use eZ\Publish\API\Repository\Values\Content\Trash\SearchResult;
 use eZ\Publish\API\Repository\Values\Content\Trash\TrashItemDeleteResult;
 use eZ\Publish\API\Repository\Values\Content\Trash\TrashItemDeleteResultList;
+use eZ\Publish\API\Repository\Values\Content\Trash\TrashQuery;
 use eZ\Publish\API\Repository\Values\Content\TrashItem;
 use eZ\Publish\API\Repository\Values\Content\Query;
 
@@ -97,4 +98,9 @@ interface TrashService
      * @return \eZ\Publish\API\Repository\Values\Content\Trash\SearchResult
      */
     public function findTrashItems(Query $query): SearchResult;
+
+    /**
+     * @throws \eZ\Publish\API\Repository\Exceptions\InvalidArgumentException
+     */
+    public function filterTrashItems(TrashQuery $query): SearchResult;
 }

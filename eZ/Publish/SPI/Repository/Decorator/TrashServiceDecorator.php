@@ -11,6 +11,7 @@ namespace eZ\Publish\SPI\Repository\Decorator;
 use eZ\Publish\API\Repository\TrashService;
 use eZ\Publish\API\Repository\Values\Content\Location;
 use eZ\Publish\API\Repository\Values\Content\Query;
+use eZ\Publish\API\Repository\Values\Content\Trash\TrashQuery;
 use eZ\Publish\API\Repository\Values\Content\TrashItem;
 use eZ\Publish\API\Repository\Values\Content\Trash\TrashItemDeleteResultList;
 use eZ\Publish\API\Repository\Values\Content\Trash\TrashItemDeleteResult;
@@ -56,5 +57,10 @@ abstract class TrashServiceDecorator implements TrashService
     public function findTrashItems(Query $query): SearchResult
     {
         return $this->innerService->findTrashItems($query);
+    }
+
+    public function filterTrashItems(TrashQuery $query): SearchResult
+    {
+        return $this->innerService->filterTrashItems($query);
     }
 }
