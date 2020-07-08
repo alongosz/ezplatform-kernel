@@ -181,10 +181,10 @@ final class ExceptionConversion extends Gateway
         }
     }
 
-    public function loadUrlAliasData(array $urlHashes): array
+    public function loadUrlAliasData(array $urlHashes, ?int $languageMask = null): array
     {
         try {
-            return $this->innerGateway->loadUrlAliasData($urlHashes);
+            return $this->innerGateway->loadUrlAliasData($urlHashes, $languageMask);
         } catch (DBALException | PDOException $e) {
             throw DatabaseException::wrap($e);
         }

@@ -672,7 +672,7 @@ final class DoctrineDatabase extends Gateway
         return false !== $result ? $result : [];
     }
 
-    public function loadUrlAliasData(array $urlHashes): array
+    public function loadUrlAliasData(array $urlHashes, ?int $languageMask = null): array
     {
         $query = $this->connection->createQueryBuilder();
         $expr = $query->expr();
@@ -683,7 +683,7 @@ final class DoctrineDatabase extends Gateway
             $query
                 ->addSelect(
                     array_map(
-                        function (string $columnName) use ($tableAlias) {
+                        static function (string $columnName) use ($tableAlias): string {
                             // do not alias data for top level url part
                             $columnAlias = 'u' === $tableAlias
                                 ? $columnName
@@ -717,6 +717,28 @@ final class DoctrineDatabase extends Gateway
 
             $previousTableName = $tableAlias;
         }
+
+        if (null !== $languageMask) {
+            $query
+                ->andWhere(
+                    // top level: ezurlalias_ml AS u
+                    // u.lang_mask & $languageMask > 0
+                    $expr->gt(
+                        $this->dbPlatform->getBitAndComparisonExpression(
+                            'u.lang_mask',
+                            $query->createPositionalParameter(
+                                $languageMask,
+                                ParameterType::INTEGER
+                            )
+                        ),
+                        0
+                    )
+                );
+        } else {
+            // make sure is_alias=0 (system URL) goes first if no language was given
+            $query->orderBy('u.is_alias', 'ASC');
+        }
+
         $query->setMaxResults(1);
 
         $result = $query->execute()->fetch(FetchMode::ASSOCIATIVE);
