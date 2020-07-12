@@ -9,10 +9,14 @@ declare(strict_types=1);
 namespace eZ\Publish\Core\Persistence\Legacy\Content\UrlAlias\Gateway;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Query\QueryBuilder;
 use eZ\Publish\Core\Base\Exceptions\BadStateException;
+use eZ\Publish\Core\Base\Exceptions\DatabaseException;
 use eZ\Publish\Core\Persistence\Legacy\Content\Language\MaskGenerator as LanguageMaskGenerator;
 use eZ\Publish\Core\Persistence\Legacy\Content\UrlAlias\Gateway;
 use RuntimeException;
@@ -548,8 +552,12 @@ final class DoctrineDatabase extends Gateway
         $query->execute();
     }
 
-    public function updateRow(int $parentId, string $textMD5, array $values): void
-    {
+    public function updateRow(
+        int $parentId,
+        string $textMD5,
+        int $languageMask,
+        array $values
+    ): void {
         $query = $this->connection->createQueryBuilder();
         $query->update($this->connection->quoteIdentifier($this->table));
         foreach ($values as $columnName => $value) {
@@ -573,6 +581,16 @@ final class DoctrineDatabase extends Gateway
                 $query->expr()->eq(
                     'text_md5',
                     $query->createNamedParameter($textMD5, ParameterType::STRING, ':text_md5')
+                )
+            )
+            ->andWhere(
+                $query->expr()->eq(
+                    'lang_mask',
+                    $query->createNamedParameter(
+                        $languageMask,
+                        ParameterType::INTEGER,
+                        ':language_mask'
+                    )
                 )
             );
         $query->execute();
@@ -643,29 +661,46 @@ final class DoctrineDatabase extends Gateway
         return (int)$this->connection->lastInsertId(self::INCR_TABLE_SEQ);
     }
 
-    public function loadRow(int $parentId, string $textMD5): array
+    public function loadCurrentAliasRow(int $parentId, string $textHash): array
     {
-        $query = $this->connection->createQueryBuilder();
-        $query->select('*')->from(
-            $this->connection->quoteIdentifier($this->table)
-        )->where(
-            $query->expr()->andX(
-                $query->expr()->eq(
-                    'parent',
-                    $query->createPositionalParameter(
-                        $parentId,
-                        ParameterType::INTEGER
-                    )
-                ),
-                $query->expr()->eq(
-                    'text_md5',
-                    $query->createPositionalParameter(
-                        $textMD5,
-                        ParameterType::STRING
-                    )
+        $query = $this->buildSelectPathElementQuery($parentId, $textHash);
+
+        $expressionBuilder = $query->expr();
+        $query
+            ->andWhere(
+                $expressionBuilder->eq(
+                    'is_alias',
+                    $query->createPositionalParameter(1, ParameterType::INTEGER)
                 )
             )
-        );
+            ->andWhere(
+                $expressionBuilder->eq(
+                    'is_original',
+                    $query->createPositionalParameter(1, ParameterType::INTEGER)
+                )
+            );
+
+        $result = $query->execute()->fetch(FetchMode::ASSOCIATIVE);
+
+        return false !== $result ? $result : [];
+    }
+
+    public function loadRow(int $parentId, string $textMD5, ?int $languageMask = null): array
+    {
+        $query = $this->buildSelectPathElementQuery($parentId, $textMD5);
+
+        if (null !== $languageMask) {
+            $query->andWhere(
+                $query->expr()->orX(
+                    $this->getLanguageMaskMatchConstraint($query, $languageMask),
+                    // "nop" entries are a special case entries not meeting language mask matching criteria
+                    $query->expr()->eq('action_type', $query->createPositionalParameter('nop'))
+                )
+            );
+        } else {
+            // make sure is_alias=0 (system URL) goes first if no language was given
+            $query->orderBy('is_alias', 'ASC');
+        }
 
         $result = $query->execute()->fetch(FetchMode::ASSOCIATIVE);
 
@@ -719,21 +754,8 @@ final class DoctrineDatabase extends Gateway
         }
 
         if (null !== $languageMask) {
-            $query
-                ->andWhere(
-                    // top level: ezurlalias_ml AS u
-                    // u.lang_mask & $languageMask > 0
-                    $expr->gt(
-                        $this->dbPlatform->getBitAndComparisonExpression(
-                            'u.lang_mask',
-                            $query->createPositionalParameter(
-                                $languageMask,
-                                ParameterType::INTEGER
-                            )
-                        ),
-                        0
-                    )
-                );
+            // top level: ezurlalias_ml AS u WHERE u.lang_mask = ...
+            $this->appendLanguageMaskMatchConstraint($query, $languageMask, 'u.lang_mask', true);
         } else {
             // make sure is_alias=0 (system URL) goes first if no language was given
             $query->orderBy('u.is_alias', 'ASC');
@@ -746,8 +768,11 @@ final class DoctrineDatabase extends Gateway
         return false !== $result ? $result : [];
     }
 
-    public function loadAutogeneratedEntry(string $action, ?int $parentId = null): array
-    {
+    public function loadAutogeneratedEntry(
+        string $action,
+        ?int $parentId = null,
+        ?int $languageMask = null
+    ): array {
         $query = $this->connection->createQueryBuilder();
         $query->select(
             '*'
@@ -770,7 +795,7 @@ final class DoctrineDatabase extends Gateway
             )
         );
 
-        if (isset($parentId)) {
+        if (null !== $parentId) {
             $query->andWhere(
                 $query->expr()->eq(
                     'parent',
@@ -780,6 +805,10 @@ final class DoctrineDatabase extends Gateway
                     )
                 )
             );
+        }
+
+        if (null !== $languageMask) {
+            $this->appendLanguageMaskMatchConstraint($query, $languageMask);
         }
 
         $entry = $query->execute()->fetch(FetchMode::ASSOCIATIVE);
@@ -1469,5 +1498,122 @@ final class DoctrineDatabase extends Gateway
         ;
 
         return $queryBuilder->execute();
+    }
+
+    public function loadSystemEntriesForPath(int $parentId, string $textHash): array
+    {
+        $query = $this->connection->createQueryBuilder();
+        $expressionBuilder = $query->expr();
+        $query
+            ->select(array_keys(self::URL_ALIAS_DATA_COLUMN_TYPE_MAP))
+            ->from($this->connection->quoteIdentifier($this->table))
+            ->where(
+                $expressionBuilder->eq(
+                    'parent',
+                    $query->createPositionalParameter(
+                        $parentId,
+                        ParameterType::INTEGER
+                    )
+                )
+            )
+            ->andWhere(
+                $expressionBuilder->eq(
+                    'text_md5',
+                    $query->createPositionalParameter(
+                        $textHash,
+                        ParameterType::STRING
+                    )
+                )
+            );
+
+        return $query->execute()->fetchAll(FetchMode::ASSOCIATIVE);
+    }
+
+    private function appendLanguageMaskMatchConstraint(
+        QueryBuilder $query,
+        int $languageMask,
+        string $langMaskColumnName = 'lang_mask',
+        bool $matchAlwaysAvailable = false
+    ): QueryBuilder {
+        $query->andWhere(
+            // lang_mask & $languageMask > $matchAlwaysAvailable
+            $this->getLanguageMaskMatchConstraint(
+                $query,
+                $languageMask,
+                $langMaskColumnName,
+                $matchAlwaysAvailable
+            )
+        );
+
+        return $query;
+    }
+
+    private function getLanguageMaskMatchConstraint(
+        QueryBuilder $query,
+        int $languageMask,
+        string $langMaskColumnName = 'lang_mask',
+        bool $matchAlwaysAvailable = false
+    ): string {
+        $databasePlatform = $this->getDatabasePlatform();
+        // intentionally 0 to match, see bitwise operation
+        $greaterThanValue = $matchAlwaysAvailable ? 0 : 1;
+
+        $expressionBuilder = $query->expr();
+        // lang_mask & $languageMask > $matchAlwaysAvailable
+        return $expressionBuilder->gt(
+            $databasePlatform->getBitAndComparisonExpression(
+                $langMaskColumnName,
+                $query->createPositionalParameter($languageMask, ParameterType::INTEGER)
+            ),
+            // "> 0" or "> 1" to match always available or not to, respectively
+            $query->createPositionalParameter($greaterThanValue, ParameterType::INTEGER)
+        );
+    }
+
+    private function buildSelectPathElementQuery(int $parentId, string $textHash): QueryBuilder
+    {
+        $query = $this->connection->createQueryBuilder();
+        $expressionBuilder = $query->expr();
+        $query
+            ->select(array_keys(self::URL_ALIAS_DATA_COLUMN_TYPE_MAP))
+            ->from($this->connection->quoteIdentifier($this->table))
+            ->where(
+                $expressionBuilder->eq(
+                    'parent',
+                    $query->createPositionalParameter(
+                        $parentId,
+                        ParameterType::INTEGER
+                    )
+                )
+            )
+            ->andWhere(
+                $expressionBuilder->eq(
+                    'text_md5',
+                    $query->createPositionalParameter(
+                        $textHash,
+                        ParameterType::STRING
+                    )
+                )
+            );
+
+        return $query;
+    }
+
+    /**
+     * Lazy database platform (engine) fetch (creates a connection, if not opened yet).
+     *
+     * @return \Doctrine\DBAL\Platforms\AbstractPlatform
+     */
+    private function getDatabasePlatform(): AbstractPlatform
+    {
+        if (null === $this->databasePlatform) {
+            try {
+                $this->databasePlatform = $this->connection->getDatabasePlatform();
+            } catch (DBALException $e) {
+                throw DatabaseException::wrap($e);
+            }
+        }
+
+        return $this->databasePlatform;
     }
 }
