@@ -52,7 +52,8 @@
         "twig/twig": "^3.0",
         "twig/extra-bundle": "^3.0",
         "friendsofsymfony/jsrouting-bundle": "^2.5",
-        "psr/event-dispatcher": "^1.0"
+        "psr/event-dispatcher": "^1.0",
+        "awl/php-utils": "@dev"
     },
     "require-dev": {
         "behat/behat": "^3.6.1",
@@ -111,6 +112,12 @@
         "thanks": {
             "name": "ezsystems/ezplatform",
             "url": "https://github.com/ezsystems/ezplatform"
+        }
+    },
+    "repositories": {
+        "awl-php-utils": {
+            "type": "vcs",
+            "url": "/home/andrew/packages/awl/php-utils/"
         }
     }
 }
