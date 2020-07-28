@@ -22,6 +22,7 @@
             <directory>eZ/Publish/API/Repository/Tests/Values/User/Limitation</directory>
             <directory>eZ/Publish/API/Repository/Tests/FieldType/</directory>
             <directory>eZ/Publish/API/Repository/Tests/Limitation</directory>
+            <directory>eZ/Publish/API/Repository/Tests/LocationService</directory>
             <directory>eZ/Publish/API/Repository/Tests/SearchService</directory>
             <directory>eZ/Publish/API/Repository/Tests/Filtering</directory>
             <directory>eZ/Publish/API/Repository/Tests/URLAliasService</directory>
