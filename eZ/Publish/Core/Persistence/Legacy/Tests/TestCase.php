@@ -75,7 +75,7 @@ abstract class TestCase extends BaseTestCase
             if (!$this->dsn) {
                 $this->dsn = 'sqlite://:memory:';
             }
-            $this->db = preg_replace('(^([a-z]+).*)', '\\1', $this->dsn);
+            $this->db = $this->getDatabaseEngineNameFromDSN($this->dsn);
         }
 
         return $this->dsn;
