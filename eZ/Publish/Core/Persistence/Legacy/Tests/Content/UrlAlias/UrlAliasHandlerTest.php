@@ -4435,13 +4435,14 @@ class UrlAliasHandlerTest extends TestCase
 
         $handler->locationSwapped(317, 315, 316, 314);
 
-        $this->assertEquals(
-            $countBeforeReusing + 2,
+        self::assertEquals(
+            // 4 additional archived entries are created (2 of them have split mask with respect to the original ones)
+            $countBeforeReusing + 4,
             $this->countRows()
         );
 
         $urlAlias = $handler->lookup('jedan/swap-this');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '2-' . md5('swap-this'),
@@ -4473,11 +4474,12 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('jedan/swap-this') loaded incorrect URL alias"
         );
 
         $urlAlias = $handler->lookup('jedan/swap-en');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '2-' . md5('swap-en'),
@@ -4506,11 +4508,12 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('jedan/swap-en') loaded incorrect URL alias"
         );
 
         $urlAlias = $handler->lookup('dva/swap-hr');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '3-' . md5('swap-hr'),
@@ -4539,11 +4542,12 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('dva/swap-hr') loaded incorrect URL alias"
         );
 
         $urlAlias = $handler->lookup('dva/swap-this');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '3-' . md5('swap-this'),
@@ -4575,7 +4579,8 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('dva/swap-this') loaded incorrect URL alias"
         );
     }
 
@@ -4599,7 +4604,7 @@ class UrlAliasHandlerTest extends TestCase
         );
 
         $urlAlias = $handler->lookup('jedan/swap-this');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '2-' . md5('swap-this'),
@@ -4628,11 +4633,12 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('jedan/swap-this') loaded incorrect URL alias"
         );
 
         $urlAlias = $handler->lookup('jedan/swap-en');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '2-' . md5('swap-en'),
@@ -4732,11 +4738,12 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('jedan/swap-en') loaded incorrect URL alias"
         );
 
         $urlAlias = $handler->lookup('dva/swap-hr');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '3-' . md5('swap-hr'),
@@ -4800,11 +4807,12 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('dva/swap-hr') loaded incorrect URL alias"
         );
 
         $urlAlias = $handler->lookup('dva/swap-this');
-        $this->assertEquals(
+        self::assertEquals(
             new UrlAlias(
                 [
                     'id' => '3-' . md5('swap-this'),
@@ -4868,7 +4876,8 @@ class UrlAliasHandlerTest extends TestCase
                     'forward' => false,
                 ]
             ),
-            $urlAlias
+            $urlAlias,
+            "lookup('dva/swap-this') loaded incorrect URL alias"
         );
     }
 

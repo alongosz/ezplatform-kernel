@@ -53,7 +53,8 @@
         "twig/extra-bundle": "^3.0",
         "friendsofsymfony/jsrouting-bundle": "^2.5",
         "psr/event-dispatcher": "^1.0",
-        "awl/php-utils": "@dev"
+        "awl/php-utils": "@dev",
+        "ocramius/package-versions": "^1.10"
     },
     "require-dev": {
         "behat/behat": "^3.6.1",
