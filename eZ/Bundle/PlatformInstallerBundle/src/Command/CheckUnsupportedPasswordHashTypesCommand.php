@@ -7,17 +7,13 @@
 namespace EzSystems\PlatformInstallerBundle\Command;
 
 use Doctrine\DBAL\Connection;
+use eZ\Publish\API\Repository\Values\User\User;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final class CheckUnsupportedPasswordHashTypesCommand extends Command
 {
-    private const PASSWORD_HASH_MD5_PASSWORD = 1;
-    private const PASSWORD_HASH_MD5_USER = 2;
-    private const PASSWORD_HASH_MD5_SITE = 3;
-    private const PASSWORD_HASH_PLAINTEXT = 5;
-
     /** @var \Doctrine\DBAL\Connection */
     private $connection;
 
@@ -44,7 +40,7 @@ final class CheckUnsupportedPasswordHashTypesCommand extends Command
             $output->writeln('OK - <info>All users have supported password hash types</info>');
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     private function countUnsupportedHashTypes(): int
@@ -55,12 +51,7 @@ final class CheckUnsupportedPasswordHashTypesCommand extends Command
             ->select('count(u.login)')
             ->from('ezuser', 'u')
             ->andWhere(
-                $selectQuery->expr()->in('u.password_hash_type', [
-                    self::PASSWORD_HASH_MD5_PASSWORD,
-                    self::PASSWORD_HASH_MD5_USER,
-                    self::PASSWORD_HASH_MD5_SITE,
-                    self::PASSWORD_HASH_PLAINTEXT,
-                ])
+                $selectQuery->expr()->notIn('u.password_hash_type', User::SUPPORTED_PASSWORD_HASHES)
             );
 
         return $selectQuery
