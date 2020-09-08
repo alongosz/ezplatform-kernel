@@ -9,6 +9,8 @@ namespace eZ\Publish\Core\FieldType\Tests\Integration\User\UserStorage;
 use eZ\Publish\Core\FieldType\Tests\Integration\BaseCoreFieldTypeIntegrationTest;
 use eZ\Publish\Core\FieldType\User\UserStorage\Gateway;
 use eZ\Publish\Core\Repository\Values\User\User;
+use eZ\Publish\SPI\Tests\Persistence\FixtureImporter;
+use eZ\Publish\SPI\Tests\Persistence\YamlFixture;
 
 /**
  * User Field Type external storage gateway tests.
@@ -61,9 +63,32 @@ abstract class UserStorageGatewayTest extends BaseCoreFieldTypeIntegrationTest
         self::assertEquals($expectedUserData, $data);
     }
 
-    public function testCountUsersWithUnsupportedHashTypeWhenThereIsNotAnyUnsupportedPasswordHash()
+    /**
+     * @dataProvider getDataForTestCountUsersWithUnsupportedHashType
+     */
+    public function testCountUsersWithUnsupportedHashType(
+        int $expectedCount,
+        ?string $fixtureFilePath
+    ): void {
+        if (null !== $fixtureFilePath) {
+            $importer = new FixtureImporter($this->getDatabaseConnection());
+            $importer->import(new YamlFixture($fixtureFilePath));
+        }
+
+        $actualCount = $this->getGateway()->countUsersWithUnsupportedHashType();
+        self::assertEquals($expectedCount, $actualCount);
+    }
+
+    public function getDataForTestCountUsersWithUnsupportedHashType(): iterable
     {
-        $counter = $this->getGateway()->countUsersWithUnsupportedHashType();
-        $this->assertEquals(0, $counter);
+        yield 'no unsupported hashes' => [
+            0,
+            null,
+        ];
+
+        yield 'with unsupported hash' => [
+            1,
+            __DIR__ . '/_fixtures/unsupported_hash.yaml',
+        ];
     }
 }
