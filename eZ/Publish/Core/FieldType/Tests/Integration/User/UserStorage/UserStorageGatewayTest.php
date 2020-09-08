@@ -7,6 +7,7 @@
 namespace eZ\Publish\Core\FieldType\Tests\Integration\User\UserStorage;
 
 use eZ\Publish\Core\FieldType\Tests\Integration\BaseCoreFieldTypeIntegrationTest;
+use eZ\Publish\Core\FieldType\User\UserStorage\Gateway;
 use eZ\Publish\Core\Repository\Values\User\User;
 
 /**
@@ -14,15 +15,9 @@ use eZ\Publish\Core\Repository\Values\User\User;
  */
 abstract class UserStorageGatewayTest extends BaseCoreFieldTypeIntegrationTest
 {
-    /**
-     * @return \eZ\Publish\Core\FieldType\User\UserStorage\Gateway
-     */
-    abstract protected function getGateway();
+    abstract protected function getGateway(): Gateway;
 
-    /**
-     * @return array
-     */
-    public function providerForGetFieldData()
+    public function providerForGetFieldData(): array
     {
         $expectedUserData = [
             10 => [
@@ -59,15 +54,11 @@ abstract class UserStorageGatewayTest extends BaseCoreFieldTypeIntegrationTest
 
     /**
      * @dataProvider providerForGetFieldData
-     *
-     * @param int|null $fieldId
-     * @param int $userId
-     * @param array $expectedUserData
      */
-    public function testGetFieldData($fieldId, $userId, array $expectedUserData)
+    public function testGetFieldData(?int $fieldId, ?int $userId, array $expectedUserData): void
     {
         $data = $this->getGateway()->getFieldData($fieldId, $userId);
-        $this->assertEquals($expectedUserData, $data);
+        self::assertEquals($expectedUserData, $data);
     }
 
     public function testCountUsersWithUnsupportedHashTypeWhenThereIsNotAnyUnsupportedPasswordHash()
