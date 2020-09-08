@@ -28,6 +28,7 @@ services:
 
     EzSystems\PlatformInstallerBundle\Command\CheckUnsupportedPasswordHashTypesCommand:
         arguments:
-            $connection: "@ezpublish.persistence.connection"
+            $userStorage: '@ezpublish.fieldType.ezuser.externalStorage'
+
         tags:
-            - { name: console.command, command: ezplatform:check-unsupported-password-hash-types }
+            - { name: console.command, command: ezplatform:user:validate-password-hashes }

@@ -6,32 +6,31 @@
  */
 namespace EzSystems\PlatformInstallerBundle\Command;
 
-use Doctrine\DBAL\Connection;
-use eZ\Publish\API\Repository\Values\User\User;
+use eZ\Publish\Core\FieldType\User\UserStorage;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final class CheckUnsupportedPasswordHashTypesCommand extends Command
 {
-    /** @var \Doctrine\DBAL\Connection */
-    private $connection;
+    /** @var UserStorage */
+    private $userStorage;
 
     public function __construct(
-        Connection $connection
+        UserStorage $userStorage
     ) {
-        $this->connection = $connection;
+        $this->userStorage = $userStorage;
         parent::__construct();
     }
 
     protected function configure()
     {
-        $this->setName('ezplatform:check-unsupported-password-hash-types');
+        $this->setName('ezplatform:user:validate-password-hashes');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $unsupportedHashesCounter = $this->countUnsupportedHashTypes();
+        $unsupportedHashesCounter = $this->userStorage->countUsersWithUnsupportedHashType();
 
         if ($unsupportedHashesCounter > 0) {
             $output->writeln(sprintf('<error>Found %s users with unsupported password hash types</error>', $unsupportedHashesCounter));
@@ -41,21 +40,5 @@ final class CheckUnsupportedPasswordHashTypesCommand extends Command
         }
 
         return Command::SUCCESS;
-    }
-
-    private function countUnsupportedHashTypes(): int
-    {
-        $selectQuery = $this->connection->createQueryBuilder();
-
-        $selectQuery
-            ->select('count(u.login)')
-            ->from('ezuser', 'u')
-            ->andWhere(
-                $selectQuery->expr()->notIn('u.password_hash_type', User::SUPPORTED_PASSWORD_HASHES)
-            );
-
-        return $selectQuery
-            ->execute()
-            ->fetchColumn();
     }
 }
