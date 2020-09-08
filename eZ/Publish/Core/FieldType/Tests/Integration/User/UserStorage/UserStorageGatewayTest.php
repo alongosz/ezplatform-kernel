@@ -69,4 +69,10 @@ abstract class UserStorageGatewayTest extends BaseCoreFieldTypeIntegrationTest
         $data = $this->getGateway()->getFieldData($fieldId, $userId);
         $this->assertEquals($expectedUserData, $data);
     }
+
+    public function testCountUsersWithUnsupportedHashTypeWhenThereIsNotAnyUnsupportedPasswordHash()
+    {
+        $counter = $this->getGateway()->countUsersWithUnsupportedHashType();
+        $this->assertEquals(0, $counter);
+    }
 }
