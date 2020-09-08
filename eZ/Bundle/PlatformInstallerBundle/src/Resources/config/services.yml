@@ -26,7 +26,7 @@ services:
         tags:
             - { name: console.command, command: ezplatform:install }
 
-    EzSystems\PlatformInstallerBundle\Command\CheckUnsupportedPasswordHashTypesCommand:
+    EzSystems\PlatformInstallerBundle\Command\ValidatePasswordHashesCommand:
         arguments:
             $userStorage: '@ezpublish.fieldType.ezuser.externalStorage'
 

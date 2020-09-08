@@ -11,9 +11,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class CheckUnsupportedPasswordHashTypesCommand extends Command
+final class ValidatePasswordHashesCommand extends Command
 {
-    /** @var UserStorage */
+    /** @var \eZ\Publish\Core\FieldType\User\UserStorage */
     private $userStorage;
 
     public function __construct(

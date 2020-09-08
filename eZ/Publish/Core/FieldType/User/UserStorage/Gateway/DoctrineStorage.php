@@ -434,7 +434,7 @@ class DoctrineStorage extends Gateway
             ->andWhere(
                 $selectQuery->expr()->notIn('u.password_hash_type', ':supportedPasswordHashes')
             )
-            ->setParameter('supportedPasswordHashes', User::SUPPORTED_PASSWORD_HASHES, Connection::PARAM_STR_ARRAY);
+            ->setParameter('supportedPasswordHashes', User::SUPPORTED_PASSWORD_HASHES, Connection::PARAM_INT_ARRAY);
 
         return $selectQuery
             ->execute()
